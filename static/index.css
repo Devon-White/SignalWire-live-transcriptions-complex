@@ -1,0 +1,184 @@
+button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    color: #fff;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+
+body {
+    font-family: Arial, sans-serif;
+    background-color: #F5F5F5;
+    margin: 0;
+    padding: 0;
+}
+
+.active {
+    cursor: not-allowed;
+    background-color: #2fff00;
+    color: #0a0000;
+}
+
+.call-list-item-hover:hover {
+  cursor: pointer;
+  background-color: #f1c82b;
+}
+.selected {
+  cursor: pointer;
+  background-color: #1069ec;
+  color: white;
+}
+
+.container {
+    position: relative;
+    width: 80%;
+    margin: 0 auto;
+    overflow: auto;
+    font-family: 'Open Sans', sans-serif; /* replace with desired font */
+    padding-top: 50px;
+}
+
+.transcript-container {
+    width: 80%;
+    height: 60vh; /* adjust to your liking */
+    overflow: auto;
+    margin-top: 20px; /* adjust to your liking */
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    padding: 20px;
+    background-color: #fff;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+.message {
+    padding: 10px;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    display: inline-block;
+    max-width: 80%;
+    word-wrap: break-word;
+}
+
+.caller {
+    background-color: #007aff;
+    color: white;
+    align-self: flex-end;
+    margin-right: 15px;
+}
+
+.callee {
+    background-color: #e5e5ea;
+    color: black;
+    align-self: flex-start;
+    margin-left: 15px;
+}
+
+#transcript {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+
+#error-banner {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    background-color: red;
+    color: white;
+    padding: 10px;
+    transform: translateY(-100%);
+    transition: transform 0.5s ease-in-out;
+}
+
+
+#call-list {
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    width: 325px;
+    height: 100%;
+    background-color: #fff;
+    overflow-y: auto; /* add scrollbar when needed */
+    padding: 10px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    border-radius: 10px;
+}
+
+
+#call-list, #call-list-ids {
+    max-height: 100vh;
+    overflow: auto;
+    list-style: none;
+
+}
+
+
+#button-container {
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    width: 300px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 10px;
+}
+
+
+#confirm-button {
+    background-color: #007aff;
+}
+
+#confirm-button:hover {
+    background-color: #005999;
+}
+
+#disconnect-button {
+    z-index: 2000;
+    background-color: red;
+}
+
+#disconnect-button:hover {
+    z-index: 2000;
+    background-color: darkred;
+}
+
+#start-button {
+    display: none;
+    z-index: 2000;
+    background-color: green;
+}
+
+#start-button:hover {
+    background-color: darkgreen;
+}
+
+
+.call-action-container {
+    display: flex;
+    margin: 0 auto;
+}
+
+#disconnect-call-button {
+    background-color: orange;
+    margin-right: 10px;
+}
+
+#disconnect-call-button:hover {
+    background-color: darkorange;
+}
+
+#download-button {
+    background-color: lightgreen;
+}
+
+#download-button:hover{
+    background-color: darkgreen;
+}
+
+

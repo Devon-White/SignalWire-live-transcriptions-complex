@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="">
+<head>
+    <title>Transcription Results</title>
+</head>
+
+<link rel="stylesheet" href="../static/index.css">
+
+
+<body onload="startWebSocket()">
+    <div class="container">
+        <h1>Transcription Results</h1>
+        <div id="status">Status</div>
+        <div class="transcript-container">
+            <div id="transcript"></div>
+        </div>
+    <div class="call-action-container">
+        <button id="disconnect-call-button" style="display: none;" onclick="disconnectCall()">Disconnect Call</button>
+        <button id="download-button" style="display: none;">Download Transcript</button>
+    </div>
+
+    </div>
+
+
+    <div id="sid"></div>
+
+    <!-- HTML markup for the error banner -->
+    <div id="error-banner">
+        Error: <span id="error-message"></span>
+    </div>
+
+    <div id="call-list">
+        <h2>Call List:</h2>
+        <ul id="call-list-ids"></ul>
+    </div>
+
+    <div id="button-container">
+        <div>
+            <button id="confirm-button" onclick="sendInput()">Send</button>
+        </div>
+
+        <div>
+            <button id="disconnect-button" onclick="disconnect()">Stop WebSocket</button>
+
+            <button id="start-button" onclick="startWebSocket()">Connect WebSocket</button>
+
+        </div>
+    </div>
+
+    <script src="../static/index.js"></script>
+</body>
+</html>
