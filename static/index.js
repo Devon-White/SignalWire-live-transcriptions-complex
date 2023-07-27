@@ -64,16 +64,14 @@ callListIds.onmouseout = function(event) {
 };
 
 function update_call_activity(currentIds, activeSid) {
-    for (let current_id of currentIds) {
-        let current_call = document.getElementById(current_id);
-        if (current_id === activeSid) {
-            current_call.classList.add('active');
+    currentIds.forEach(id => {
+        let callItem = document.getElementById(id);
+        if (id === activeSid) {
+            callItem.classList.add('active');
         } else {
-            if (current_call.classList.contains('active')) {
-                current_call.classList.remove('active');
-            }
+            callItem.classList.remove('active');
         }
-    }
+    });
 }
 
 function startWebSocket() {
@@ -92,6 +90,7 @@ function startWebSocket() {
         callListIds.innerHTML = '';
         disconnectButton.style.display = 'none';
         startButton.style.display = 'block';
+        if (inputArea) inputArea.style.display = 'none';
     };
 
     socket.onmessage = event => {
@@ -119,28 +118,28 @@ function startWebSocket() {
                 }
 
             case data.action === 'history':
-            // Clear any existing transcripts
-            //transcriptDiv.innerHTML = '';
+                // Clear any existing transcripts
+                transcriptDiv.innerHTML = '';
 
-            // Loop through each transcript in the history
-            data.history.forEach(transcript => {
-                try {
-                    // Create a new div for the transcript
-                    let messageDiv = document.createElement('div');
-                    messageDiv.className = `message ${transcript.speaker === 'caller' ? 'caller' : 'callee'}`;
-                    messageDiv.innerText = transcript.transcript;
-                    console.log(messageDiv)
+                // Loop through each transcript in the history
+                data.history.forEach(transcript => {
+                    try {
+                        // Create a new div for the transcript
+                        let messageDiv = document.createElement('div');
+                        messageDiv.className = `message ${transcript.speaker === 'caller' ? 'caller' : 'callee'}`;
+                        messageDiv.innerText = transcript.transcript;
+                        console.log(messageDiv)
 
-                    // Append the transcript div to the transcript container
-                    console.log(transcriptDiv.innerHTML)
-                    transcriptDiv.appendChild(messageDiv);
-                    console.log(transcriptDiv.innerHTML)
-                } catch (error) {
-                    console.error(error);
-                }
-            });
+                        // Append the transcript div to the transcript container
+                        console.log(transcriptDiv.innerHTML)
+                        transcriptDiv.appendChild(messageDiv);
+                        console.log(transcriptDiv.innerHTML)
+                    } catch (error) {
+                        console.error(error);
+                    }
+                });
 
-            break;
+                break;
 
             case data.action === 'transcript_message':
                 console.log(event);
@@ -152,17 +151,20 @@ function startWebSocket() {
                 transcriptDiv.appendChild(messageDiv);
                 break;
 
+
             case data.action === 'input':
                 statusDiv.innerText = `Connected to call: ${data.sid}`;
-                //transcriptDiv.innerHTML = '';
+                transcriptDiv.innerHTML = '';
                 document.getElementById('disconnect-call-button').style.display = 'block';
                 downloadButton.disabled = false;
                 downloadButton.style.display = 'block'; // Show download button
 
                 const currentIds = Object.keys(callList).filter(id => callList[id]);
 
-                update_call_activity(currentIds, data.sid)
+                update_call_activity(currentIds, data.sid) // Add this line back
+
                 break;
+
 
             case data.status:
                 statusDiv.innerHTML += data.status + '<br/>';
