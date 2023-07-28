@@ -76,7 +76,6 @@ function update_call_activity(currentIds, activeSid) {
 
 function startWebSocket() {
     socket = new WebSocket(`wss://${location.host}/listen`);
-    console.log('startWebSocket()', socket)
 
     socket.onopen = () => {
         startButton.style.display = 'none';
@@ -117,32 +116,7 @@ function startWebSocket() {
                     break;
                 }
 
-            case data.action === 'history':
-                // Clear any existing transcripts
-                transcriptDiv.innerHTML = '';
-
-                // Loop through each transcript in the history
-                data.history.forEach(transcript => {
-                    try {
-                        // Create a new div for the transcript
-                        let messageDiv = document.createElement('div');
-                        messageDiv.className = `message ${transcript.speaker === 'caller' ? 'caller' : 'callee'}`;
-                        messageDiv.innerText = transcript.transcript;
-                        console.log(messageDiv)
-
-                        // Append the transcript div to the transcript container
-                        console.log(transcriptDiv.innerHTML)
-                        transcriptDiv.appendChild(messageDiv);
-                        console.log(transcriptDiv.innerHTML)
-                    } catch (error) {
-                        console.error(error);
-                    }
-                });
-
-                break;
-
             case data.action === 'transcript_message':
-                console.log(event);
                 let speaker = data.transcript.speaker;
                 let trans = data.transcript.transcript;
                 let messageDiv = document.createElement('div');
@@ -154,14 +128,31 @@ function startWebSocket() {
 
             case data.action === 'input':
                 statusDiv.innerText = `Connected to call: ${data.sid}`;
-                transcriptDiv.innerHTML = '';
                 document.getElementById('disconnect-call-button').style.display = 'block';
                 downloadButton.disabled = false;
                 downloadButton.style.display = 'block'; // Show download button
-
                 const currentIds = Object.keys(callList).filter(id => callList[id]);
-
                 update_call_activity(currentIds, data.sid) // Add this line back
+
+                // Clear any existing transcripts if no history is present
+                if (!data.history || data.history.length === 0) {
+                    transcriptDiv.innerHTML = '';
+                }
+
+                // Loop through each transcript in the history
+                data.history.forEach(transcript => {
+                    try {
+                        // Create a new div for the transcript
+                        let messageDiv = document.createElement('div');
+                        messageDiv.className = `message ${transcript.speaker === 'caller' ? 'caller' : 'callee'}`;
+                        messageDiv.innerText = transcript.transcript;
+
+                        // Append the transcript div to the transcript container
+                        transcriptDiv.appendChild(messageDiv);
+                    } catch (error) {
+                        console.error(error);
+                    }
+                });
 
                 break;
 
@@ -170,7 +161,6 @@ function startWebSocket() {
                 statusDiv.innerHTML += data.status + '<br/>';
                 break;
             case data.action === 'update_call_list':
-                console.log(event);
                 const newDataCallList = data['callList'];
                 const removedIds = Object.keys(callList).filter(id => !newDataCallList.includes(id));
                 removedIds.forEach(id => {
@@ -206,7 +196,6 @@ function startWebSocket() {
 
 function sendInput() {
     if (selectedCall) {
-        console.log(selectedCall.innerHTML);
         socket.send(JSON.stringify({
             'action': 'input',
             'call_sid': selectedCall.innerHTML

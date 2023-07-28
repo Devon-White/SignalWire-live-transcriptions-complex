@@ -49,16 +49,15 @@ class ActiveClient:
                 history = [{'datetime': transcript[0], 'speaker': transcript[1], 'transcript': transcript[2]} for
                            transcript in transcripts]
 
-                # Send the history to the client
+                # Send the combined history and input message to the client
                 await self.manager.send_personal_message(json.dumps({
-                    'action': 'history',
+                    'action': 'input',
+                    'sid': self.sid,
                     'history': history}),
                     self.websocket)
-
-                await self.manager.send_personal_message(json.dumps({'action': 'input', 'sid': self.sid}),
-                                                         self.websocket)
 
         elif action == ActionType.CLOSE:
             self.sid = data["call_sid"]
             if self.sid in self.call_list:
                 self.call_list[self.sid].clients.remove(self)
+
