@@ -6,3 +6,4 @@ pydub~=0.25.1
 pyngrok~=6.0.0
 signalwire~=2.0.5
 aiosqlite~=0.19.0
+deepgram-sdk==2.*
