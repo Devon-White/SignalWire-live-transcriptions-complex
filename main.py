@@ -10,13 +10,12 @@ import asyncio
 # Load environment variables
 load_dotenv()
 
-
 client = SignalwireClient(settings.PROJECT, settings.SW_TOKEN, signalwire_space_url=settings.SPACE)
 
 app = FastAPI()
 app.include_router(http_handler.router)
 app.include_router(websocket_handler.router)
-app.mount("/static", staticfiles.StaticFiles(directory="static"), name="static")
+app.mount('/static', staticfiles.StaticFiles(directory="static"), name="static")
 
 def start_ngrok():
     print("Starting ngrok tunnel...")
