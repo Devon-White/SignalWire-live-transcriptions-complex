@@ -1,12 +1,10 @@
-import asyncio
 import base64
 import json
 from pydub import AudioSegment
 from fastapi import WebSocket, WebSocketDisconnect, APIRouter
 from active_call import ActiveCall
 from active_client import ActiveClient
-from utils import send_list_update
-from config import manager, call_list, list_update, settings, db_manager, dg_client
+from config import manager, call_list, settings, db_manager, dg_client
 
 router = APIRouter()
 
@@ -15,7 +13,6 @@ router = APIRouter()
 async def listen(websocket: WebSocket):
     await manager.connect(websocket)
     client = ActiveClient(websocket, call_list, manager, db_manager)
-    asyncio.create_task(send_list_update(manager, list_update, call_list))
     await manager.send_personal_message(json.dumps({'action': 'update_call_list', 'callList': list(call_list.keys())}),
                                         websocket)
 
@@ -52,7 +49,7 @@ async def websocket_endpoint(websocket: WebSocket):
                 call_list[sid] = call_class
 
                 deepgram_socket = await call_class.connect_to_deepgram()
-                await list_update.put("update")
+                await manager.list_update.put("update")
 
             elif data['event'] == "media":
                 if deepgram_socket is not None:
@@ -67,7 +64,7 @@ async def websocket_endpoint(websocket: WebSocket):
                 if deepgram_socket is not None:
                     deepgram_socket.send(json.dumps({'type': 'CloseStream'}))
                     del call_list[call_class.sid]
-                    await list_update.put("update")
+                    await manager.list_update.put("update")
                     break
 
             while len(in_buffer) >= buffer_size and len(out_buffer) >= buffer_size:

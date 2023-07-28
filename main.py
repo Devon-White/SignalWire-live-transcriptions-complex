@@ -2,10 +2,10 @@ import uvicorn
 from dotenv import load_dotenv
 from fastapi import FastAPI, staticfiles
 from pyngrok import ngrok
-from typing import Any, List
 from signalwire.rest import Client as SignalwireClient
-from config import settings
+from config import settings, manager, call_list
 from handlers import http_handler, websocket_handler
+import asyncio
 
 # Load environment variables
 load_dotenv()
@@ -17,9 +17,6 @@ app = FastAPI()
 app.include_router(http_handler.router)
 app.include_router(websocket_handler.router)
 app.mount("/static", staticfiles.StaticFiles(directory="static"), name="static")
-
-# Initialize call list and other data structures
-all_clients: List[Any] = []
 
 def start_ngrok():
     print("Starting ngrok tunnel...")
@@ -33,6 +30,11 @@ def start_ngrok():
     print(f"Signalwire Number updated...\n Public Url: {tunnel_url}")
     print(f"Call {settings.WEBHOOK_NUM} to start transcribing a call...")
 
+
+@app.on_event("startup")
+async def startup_event():
+    # Start the task for listening for updates when the application starts
+    asyncio.create_task(manager.listen_for_updates(call_list))
 
 if __name__ == "__main__":
     try:

@@ -37,7 +37,6 @@ manager = ConnectionManager()
 
 # Initialize call list and list_update
 call_list: Dict[str, Any] = {}
-list_update: asyncio.Queue = asyncio.Queue()
 
 # Initialize Deepgram client
 dg_client = Deepgram(os.getenv('DEEPGRAM_TOKEN'))
