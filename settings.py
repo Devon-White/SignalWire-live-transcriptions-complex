@@ -9,7 +9,7 @@ load_dotenv()
 class Settings:
     TO_NUMBER: str = os.getenv('TO_NUMBER')
     WEBHOOK_NUM: str = os.getenv('WEBHOOK_NUM')
-    PORT: str = os.getenv('port')
+    PORT: str = os.getenv('PORT', '3000')
     PROJECT: str = os.getenv('PROJECT')
     SW_TOKEN: str = os.getenv('SW_TOKEN')
     SPACE: str = os.getenv('SPACE')

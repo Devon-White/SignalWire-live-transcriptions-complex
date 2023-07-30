@@ -1,69 +1,74 @@
-let socket;
+// Cache DOM elements for better performance
+const domElements = {
+    callListIds: document.getElementById('call-list-ids'),
+    confirmButton: document.getElementById('confirm-button'),
+    startButton: document.getElementById('start-button'),
+    disconnectButton: document.getElementById('disconnect-button'),
+    downloadButton: document.getElementById('download-button'), // Download button
+    inputArea: document.getElementById('input-area'),
+    transcriptDiv: document.getElementById('transcript'),
+    statusDiv: document.getElementById('status'),
+    errorBanner: document.getElementById('error-banner'),
+    errorMessage: document.getElementById('error-message'),
+    disconnectCallButton: document.getElementById('disconnect-call-button'),
+};
+
 let callList = {};
-
-const callListIds = document.getElementById('call-list-ids');
-const confirmButton = document.getElementById('confirm-button');
-const startButton = document.getElementById('start-button');
-const disconnectButton = document.getElementById('disconnect-button');
-const downloadButton = document.getElementById('download-button'); // Download button
-const inputArea = document.getElementById('input-area');
-const transcriptDiv = document.getElementById('transcript');
-const statusDiv = document.getElementById('status');
-const errorBanner = document.getElementById('error-banner');
-const errorMessage = document.getElementById('error-message');
-const disconnectCallButton = document.getElementById('disconnect-call-button');
-
 let selectedCall = null; // Keep track of the selected item
+let socket;
 
 // Confirm button is disabled by default
-confirmButton.disabled = true;
+domElements.confirmButton.disabled = true;
 
 // Download button is hidden by default
-downloadButton.style.display = 'none'; // Hide download button by default
+domElements.downloadButton.style.display = 'none'; // Hide download button by default
+
+// Add listeners for mouseover and mouseout
+domElements.callListIds.addEventListener('mouseover', handleMouseOver);
+domElements.callListIds.addEventListener('mouseout', handleMouseOut);
 
 // Use event delegation to handle clicks on call list items
-callListIds.onclick = function(event) {
+domElements.callListIds.addEventListener('click', handleClick);
+
+// Handle Mouseover event
+function handleMouseOver(event) {
+    let target = event.target.closest('LI');
+    if (!target) return;
+    if (!target.classList.contains('selected') && !target.classList.contains('active')) {
+        target.classList.add('call-list-item-hover');
+    }
+}
+
+// Handle Mouseout event
+function handleMouseOut(event) {
+    let target = event.target.closest('LI');
+    if (!target) return;
+    target.classList.remove('call-list-item-hover');
+}
+
+// Handle Click event
+function handleClick(event) {
     let target = event.target.closest('LI');
     if (!target || target.classList.contains('active')) return;
-    if (!target) return;
-
     if (selectedCall === target) {
         selectedCall.classList.remove('selected');
-        confirmButton.disabled = true;
+        domElements.confirmButton.disabled = true;
         selectedCall = null;
         return;
     }
-
     if (selectedCall) {
         selectedCall.classList.remove('selected');
     }
     selectedCall = target;
     selectedCall.classList.add('selected');
     selectedCall.classList.remove('call-list-item-hover');
-    confirmButton.disabled = false;
-};
+    domElements.confirmButton.disabled = false;
+}
 
-callListIds.onmouseover = function(event) {
-    let target = event.target.closest('LI');
-    if (!target) return;
+// Add listeners for mousedown
+domElements.callListIds.addEventListener('mousedown', () => false);
 
-    if (!target.classList.contains('selected') && !target.classList.contains('active')) {
-        target.classList.add('call-list-item-hover');
-    }
-};
-
-callListIds.onmousedown = function() {
-    return false;
-};
-
-callListIds.onmouseout = function(event) {
-    let target = event.target.closest('LI');
-    if (!target) return;
-
-    target.classList.remove('call-list-item-hover');
-};
-
-function update_call_activity(currentIds, activeSid) {
+async function update_call_activity(currentIds, activeSid) {
     currentIds.forEach(id => {
         let callItem = document.getElementById(id);
         if (id === activeSid) {
@@ -74,45 +79,34 @@ function update_call_activity(currentIds, activeSid) {
     });
 }
 
-function startWebSocket() {
+async function startWebSocket() {
     socket = new WebSocket(`wss://${location.host}/listen`);
 
     socket.onopen = () => {
-        startButton.style.display = 'none';
-        disconnectButton.style.display = 'block';
+        domElements.startButton.style.display = 'none';
+        domElements.disconnectButton.style.display = 'block';
     };
 
     socket.onclose = () => {
         callList = {};
         selectedCall = null;
-        confirmButton.disabled = true;
-        callListIds.innerHTML = '';
-        disconnectButton.style.display = 'none';
-        startButton.style.display = 'block';
-        if (inputArea) inputArea.style.display = 'none';
+        domElements.confirmButton.disabled = true;
+        domElements.callListIds.textContent = '';
+        domElements.disconnectButton.style.display = 'none';
+        domElements.startButton.style.display = 'block';
+        if (domElements.inputArea) domElements.inputArea.style.display = 'none';
     };
 
-    socket.onmessage = event => {
+    socket.onmessage = async (event) => {
         const data = JSON.parse(event.data);
 
         switch (true) {
             case 'duplicate' in data:
-                if (errorBanner.style.display === 'block') {
+                if (domElements.errorBanner.style.display === 'block') {
                     break;
                 } else {
-                    errorMessage.innerText = `Error: Already listening to call ${data.duplicate}.`;
-                    errorBanner.style.transform = 'translateY(-100%)';
-                    errorBanner.style.display = 'block';
-                    setTimeout(function() {
-                        errorBanner.style.transform = 'translateY(0)';
-                    }, 100);
-                    setTimeout(function() {
-                        errorBanner.style.transform = 'translateY(-100%)';
-                        setTimeout(function() {
-                            errorBanner.style.display = 'none';
-                            errorBanner.style.transform = 'translateY(0)';
-                        }, 500);
-                    }, 5000);
+                    domElements.errorMessage.textContent = `Error: Already listening to call ${data.duplicate}.`;
+                    showErrorBanner();
                     break;
                 }
 
@@ -121,22 +115,21 @@ function startWebSocket() {
                 let trans = data.transcript.transcript;
                 let messageDiv = document.createElement('div');
                 messageDiv.className = `message ${speaker === 'caller' ? 'caller' : 'callee'}`;
-                messageDiv.innerHTML = trans;
-                transcriptDiv.appendChild(messageDiv);
+                messageDiv.textContent = trans;
+                domElements.transcriptDiv.appendChild(messageDiv);
                 break;
 
-
             case data.action === 'input':
-                statusDiv.innerText = `Connected to call: ${data.sid}`;
-                document.getElementById('disconnect-call-button').style.display = 'block';
-                downloadButton.disabled = false;
-                downloadButton.style.display = 'block'; // Show download button
+                domElements.statusDiv.textContent = `Connected to call: ${data.sid}`;
+                domElements.disconnectCallButton.style.display = 'block';
+                domElements.downloadButton.disabled = false;
+                domElements.downloadButton.style.display = 'block'; // Show download button
                 const currentIds = Object.keys(callList).filter(id => callList[id]);
-                update_call_activity(currentIds, data.sid) // Add this line back
+                await update_call_activity(currentIds, data.sid) // Add this line back
 
                 // Clear any existing transcripts if no history is present
                 if (!data.history || data.history.length === 0) {
-                    transcriptDiv.innerHTML = '';
+                    domElements.transcriptDiv.textContent = '';
                 }
 
                 // Loop through each transcript in the history
@@ -145,30 +138,29 @@ function startWebSocket() {
                         // Create a new div for the transcript
                         let messageDiv = document.createElement('div');
                         messageDiv.className = `message ${transcript.speaker === 'caller' ? 'caller' : 'callee'}`;
-                        messageDiv.innerText = transcript.transcript;
+                        messageDiv.textContent = transcript.transcript;
 
                         // Append the transcript div to the transcript container
-                        transcriptDiv.appendChild(messageDiv);
+                        domElements.transcriptDiv.appendChild(messageDiv);
                     } catch (error) {
                         console.error(error);
                     }
                 });
-
                 break;
-
 
             case data.status:
-                statusDiv.innerHTML += data.status + '<br/>';
+                domElements.statusDiv.textContent += `${data.status}\n`;
                 break;
+
             case data.action === 'update_call_list':
                 const newDataCallList = data['callList'];
                 const removedIds = Object.keys(callList).filter(id => !newDataCallList.includes(id));
                 removedIds.forEach(id => {
-                    if (selectedCall && selectedCall.innerText === id) { // Check if the selected call has ended
-                        disconnectCallButton.style.display = 'none';
+                    if (selectedCall && selectedCall.textContent === id) { // Check if the selected call has ended
+                        domElements.disconnectCallButton.style.display = 'none';
                     }
                     delete callList[id];
-                    const liList = callListIds.getElementsByTagName('li');
+                    const liList = domElements.callListIds.getElementsByTagName('li');
                     for (let i = 0; i < liList.length; i++) {
                         if (liList[i].textContent.includes(id)) {
                             liList[i].remove();
@@ -181,9 +173,9 @@ function startWebSocket() {
                     if (!callList[id]) {
                         callList[id] = true;
                         const li = document.createElement('li');
-                        li.innerHTML = id;
+                        li.textContent = id;
                         li.id = id;
-                        callListIds.appendChild(li);
+                        domElements.callListIds.appendChild(li);
                     }
                 });
                 break;
@@ -198,10 +190,10 @@ function sendInput() {
     if (selectedCall) {
         socket.send(JSON.stringify({
             'action': 'input',
-            'call_sid': selectedCall.innerHTML
+            'call_sid': selectedCall.textContent
         }));
         selectedCall.classList.remove('selected');
-        confirmButton.disabled = true;
+        domElements.confirmButton.disabled = true;
     }
 }
 
@@ -209,54 +201,60 @@ function disconnect() {
     if (selectedCall) {
         socket.send(JSON.stringify({
             'action': 'close',
-            'call_sid': selectedCall.innerText
+            'call_sid': selectedCall.textContent
         }));
         selectedCall.classList.remove('selected');
         selectedCall = null;
-        confirmButton.disabled = true;
+        domElements.confirmButton.disabled = true;
     }
     socket.close();
-    disconnectButton.style.display = 'none';
-    startButton.style.display = 'block';
-    if (inputArea) inputArea.style.display = 'none';
+    domElements.disconnectButton.style.display = 'none';
+    domElements.startButton.style.display = 'block';
+    if (domElements.inputArea) domElements.inputArea.style.display = 'none';
 }
 
 function disconnectCall() {
     if (selectedCall) {
         socket.send(JSON.stringify({
             'action': 'close',
-            'call_sid': selectedCall.innerText
+            'call_sid': selectedCall.textContent
         }));
         selectedCall.classList.remove('selected', 'active');
-        transcriptDiv.innerHTML = '';
+        domElements.transcriptDiv.textContent = '';
         selectedCall = null;
-        disconnectCallButton.disabled = true;
-        downloadButton.disabled = true
-        disconnectCallButton.style.display = 'none'
-        downloadButton.style.display = 'none'
+        domElements.disconnectCallButton.disabled = true;
+        domElements.downloadButton.disabled = true;
+        domElements.disconnectCallButton.style.display = 'none';
+        domElements.downloadButton.style.display = 'none';
     }
 }
 
-downloadButton.onclick = function() {
+domElements.downloadButton.addEventListener('click', async function() {
     if (selectedCall) {
-        const url = `/download/${selectedCall.innerText}`;
-        fetch(url)
-            .then(resp => resp.blob())
-            .then(blob => {
+        const url = `/download/${selectedCall.textContent}`;
+        try {
+            const resp = await fetch(url);
+            if (!resp.ok) {
+                throw new Error(`HTTP error! status: ${resp.status}`);
+            } else {
+                const blob = await resp.blob();
                 const url = window.URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.style.display = 'none';
                 a.href = url;
-                a.download = `${selectedCall.innerText}.csv`;
+                a.download = `${selectedCall.textContent}.csv`;
                 document.body.appendChild(a);
                 a.click();
                 window.URL.revokeObjectURL(url);
                 document.body.removeChild(a);
-            })
-            .catch(() => alert('Download failed'));
+            }
+        } catch (error) {
+            alert('Download failed');
+        }
     }
-};
+});
+
 
 setInterval(() => {
-    disconnectCallButton.disabled = (selectedCall === null);
+    domElements.disconnectCallButton.disabled = (selectedCall === null);
 }, 1000);

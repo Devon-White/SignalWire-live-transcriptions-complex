@@ -23,7 +23,8 @@ class ConnectionManager:
     async def broadcast(self, message: str):
         for connection in self.active_connections:
             await connection.send_text(message)
-    async def listen_for_updates(self, call_list):  # New method to continuously listen for updates
+
+    async def listen_for_updates(self, call_list):  # Method to continuously listen for updates
         while True:
             try:
                 update = await self.list_update.get()
@@ -32,4 +33,3 @@ class ConnectionManager:
                         json.dumps({'action': 'update_call_list', 'callList': list(call_list.keys())}))
             except TimeoutError:
                 pass
-

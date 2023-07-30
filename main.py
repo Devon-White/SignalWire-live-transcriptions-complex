@@ -17,6 +17,7 @@ app.include_router(http_handler.router)
 app.include_router(websocket_handler.router)
 app.mount('/static', staticfiles.StaticFiles(directory="static"), name="static")
 
+
 def start_ngrok():
     print("Starting ngrok tunnel...")
     tunnel_url = ngrok.connect(int(settings.PORT), bind_tls=True).public_url
@@ -35,9 +36,10 @@ async def startup_event():
     # Start the task for listening for updates when the application starts
     asyncio.create_task(manager.listen_for_updates(call_list))
 
+
 if __name__ == "__main__":
     try:
         start_ngrok()
     except Exception as e:
         print(f"{e}")
-    uvicorn.run(app=app, host='127.0.0.1', port=int(settings.PORT), log_level="info")
+    uvicorn.run(app=app, host='0.0.0.0', port=int(settings.PORT), log_level="info")
